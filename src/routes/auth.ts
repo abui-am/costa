@@ -189,7 +189,7 @@ authRouter.get('/oauth/google/callback', async (req, res) => {
       sendNativeOAuthCompletion(res, nativeRedirectBase, { error: errParam })
       return
     }
-    res.status(401).json({ error: errParam })
+    res.redirect(302, `/docs?oauth_error=${encodeURIComponent(errParam)}`)
     return
   }
 
@@ -200,7 +200,7 @@ authRouter.get('/oauth/google/callback', async (req, res) => {
       sendNativeOAuthCompletion(res, nativeRedirectBase, { error: msg })
       return
     }
-    res.status(400).json({ error: msg })
+    res.redirect(302, `/docs?oauth_error=${encodeURIComponent(msg)}`)
     return
   }
 
@@ -225,7 +225,7 @@ authRouter.get('/oauth/google/callback', async (req, res) => {
       sendNativeOAuthCompletion(res, nativeRedirectBase, { error: error.message })
       return
     }
-    res.status(401).json({ error: error.message })
+    res.redirect(302, `/docs?oauth_error=${encodeURIComponent(error.message)}`)
     return
   }
 
@@ -238,7 +238,7 @@ authRouter.get('/oauth/google/callback', async (req, res) => {
       sendNativeOAuthCompletion(res, nativeRedirectBase, { error: msg })
       return
     }
-    res.status(500).json({ error: msg })
+    res.redirect(302, `/docs?oauth_error=${encodeURIComponent(msg)}`)
     return
   }
 
