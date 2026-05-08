@@ -248,7 +248,8 @@ authRouter.get('/oauth/google/callback', async (req, res) => {
     return
   }
 
-  res.json(body)
+  // Browser OAuth flow: redirect to /docs so the user lands on a useful page.
+  res.redirect(302, '/docs')
 })
 
 /**
