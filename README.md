@@ -6,7 +6,7 @@ vc dev
 ```
 
 ```
-open http://localhost:3000
+open http://localhost:3222
 ```
 
 To build locally:
