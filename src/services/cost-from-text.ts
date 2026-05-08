@@ -1,4 +1,4 @@
-import OpenAI from 'openai'
+import { OpenAI } from 'openai'
 import type { BillExtractionMeta, ParsedBillCost } from './bill-scan.js'
 import { parseOpenAiCostResponse } from './bill-scan.js'
 import type { CostCategoryRow } from './category-rag.js'

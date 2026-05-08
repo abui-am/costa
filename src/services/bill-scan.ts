@@ -1,5 +1,5 @@
 import { createRequire } from 'node:module'
-import OpenAI from 'openai'
+import { OpenAI } from 'openai'
 import { mimeFromMagicBytes } from '../utils/bill-upload-mime.js'
 import { normalizeBillingMonthInput } from '../utils/billing-month.js'
 import { normalizeSpentOnInput } from '../utils/spent-on.js'
