@@ -72,6 +72,77 @@ async function fetchUserCostCategories(
   })) as CostCategoryRow[]
 }
 
+/** Mounted on the root app as `GET /api/cost/categories` so the path matches before the cost router (fixes e.g. Vercel/Express `Cannot POST /api/cost/categories`). */
+export async function listCostCategoriesHandler(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  const categories = await fetchUserCostCategories(res.locals.sbAuthClient)
+  res.json({ categories })
+}
+
+/** Mounted on the root app as `POST /api/cost/categories`. */
+export async function createCostCategoryHandler(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const body = req.body as Record<string, unknown> | undefined
+  if (!body || typeof body !== 'object') {
+    res.status(400).json({ error: 'JSON body expected' })
+    return
+  }
+
+  if (typeof body.name !== 'string' || !body.name.trim()) {
+    res.status(400).json({ error: 'name must be non-empty text' })
+    return
+  }
+  const name = body.name.trim().slice(0, 200)
+
+  const emoji =
+    typeof body.emoji === 'string' ? body.emoji.trim().slice(0, 32) : ''
+
+  let color = ''
+  if ('color' in body) {
+    if (body.color !== null && typeof body.color !== 'string') {
+      res.status(400).json({ error: 'color must be string or null' })
+      return
+    }
+    const c = parseCategoryColor(
+      body.color === null ? '' : (body.color as string),
+    )
+    if (c === null) {
+      res.status(400).json({
+        error:
+          'color must be empty or a hex string like #RGB, #RRGGBB, or #RRGGBBAA',
+      })
+      return
+    }
+    color = c
+  }
+
+  const sb = res.locals.sbAuthClient
+  const userId = res.locals.authUser.id
+
+  const { data, error } = await sb
+    .from('cost_categories')
+    .insert({
+      user_id: userId,
+      name,
+      emoji,
+      color,
+      is_generated_by_ai: false,
+    })
+    .select('id, emoji, name, is_generated_by_ai, color')
+    .single()
+
+  if (error) {
+    res.status(400).json({ error: error.message })
+    return
+  }
+
+  res.status(201).json({ category: data })
+}
+
 const CHARGE_TABLE = 'expense_charges' as const
 
 type ChargeInput = {
@@ -585,17 +656,10 @@ costRouter.get('/summary/daily', requireAuth, async (req, res) => {
   res.json({ points, from: fromDateStr, to: toDateStr, days })
 })
 
-// ── GET /categories — list user's cost categories ────────────────────────────
+// ── PATCH /categories/:categoryId — GET/POST /categories mounted on root app ─
 
 const CATEGORY_ID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
-costRouter.get('/categories', async (_req, res) => {
-  const categories = await fetchUserCostCategories(res.locals.sbAuthClient)
-  res.json({ categories })
-})
-
-// ── PATCH /categories/:categoryId ────────────────────────────────────────────
 
 costRouter.patch('/categories/:categoryId', async (req, res) => {
   const categoryId =

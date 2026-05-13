@@ -3,10 +3,15 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
 import { authRouter } from './routes/auth.js'
-import { costRouter } from './routes/cost.js'
+import {
+  costRouter,
+  listCostCategoriesHandler,
+  createCostCategoryHandler,
+} from './routes/cost.js'
 import { expenseRouter } from './routes/expense.js'
 import { openApiDocument } from './openapi/openapi-document.js'
 import { getSupabaseConfigStatus } from './supabase.js'
+import { requireAuth } from './middleware/require-auth.js'
 
 const app = express()
 app.use(
@@ -50,6 +55,8 @@ app.get('/docs', (_req, res) => {
 })
 
 app.use('/api/auth', authRouter)
+app.get('/api/cost/categories', requireAuth, listCostCategoriesHandler)
+app.post('/api/cost/categories', requireAuth, createCostCategoryHandler)
 app.use('/api/cost', costRouter)
 app.use('/api/expenses', expenseRouter)
 
